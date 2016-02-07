@@ -1,0 +1,73 @@
+/* main.css - Main CSS Declarations - extends bootstrap */
+
+html, body {
+	width: 100%;
+	height: 100%;
+	background: #AAC;
+	font-family: arial, sans-serif;
+	font-weight: 800;
+
+}
+
+.container{
+
+}
+
+.vertical-center {
+  height:100%;
+  width:100%;
+
+  text-align: center;  /* align the inline(-block) elements horizontally */
+}
+
+.vertical-center:before {    /* create a full-height inline block pseudo=element */
+  content: ' ';
+  display: inline-block;
+  vertical-align: middle;  /* vertical alignment of the inline element */
+  height: 100%;
+}
+
+.vertical-center > .container {
+  max-width: 100%;
+
+  display: inline-block;
+  vertical-align: middle;  /* vertical alignment of the inline element */
+ 
+}
+
+@media (max-width: 768px) {
+  .vertical-center:before {
+    /* height: auto; */
+    display: none;
+  }
+}
+
+#SPACE {
+  width: 19%;
+}
+
+#SHIFT {
+  width:10%;
+}
+
+#signature {
+  position: fixed;
+  right:1%;
+  bottom:0;
+  color: #fff;
+}
+
+#signature a {
+  color: #fff;
+}
+
+#title {
+  font-weight: bold; 
+  font-family:Inconsolata; 
+  color: #FFF; 
+  position: absolute; 
+  left: 50%; 
+  margin-left: -85px; 
+  text-align: middle; 
+  font-size: 64pt;
+}

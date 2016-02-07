@@ -1,0 +1,122 @@
+<head>
+  <title>Keys | James Pell</title>
+  <script src="http://code.createjs.com/soundjs-0.5.2.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inconsolata&effect=emboss">
+</head>
+
+<body>
+	{{#if notLoaded}}
+		<div class="vertical-center">
+			<div class="container">
+			<h4>Loading...</h4>
+				<br>
+			<div class="progress">
+			  <div class="progress-bar" role="progressbar" aria-valuenow={{loadedAudioPercent}}
+			  aria-valuemin="0" aria-valuemax="100" style="width:{{loadedAudioPercent}}%">
+			    <span class="sr-only">{{loadedAudioPercent}}% Complete</span>
+			  </div>
+			</div>
+			 </div>
+			</div>
+	{{else}}
+			<h1 id="title" class="font-effect-emboss">Keys</h1>
+			<div class="vertical-center">
+			<div class="container">
+				
+				<!-- Keys -->
+				<div class="row" style="margin-top: 10%;">
+					{{#each keysRow1}}
+			        	{{> key}}
+			    	{{/each}}
+				</div>
+				<div class="row">
+					{{#each keysRow2}}
+			        	{{> key}}
+			    	{{/each}}
+				</div>
+				<div class="row">
+					{{#each keysRow3}}
+			        	{{> key}}
+			    	{{/each}}
+				</div>
+				<div class="row">
+					{{#each keysRow4}}
+			        	{{> key}}
+			    	{{/each}}
+				</div>
+				<div class="row">
+					{{#each keysRow5}}
+			        	{{> key}}
+			    	{{/each}}
+				</div>
+				<!-- Key Config -->
+				<div class="row">
+					{{#each keysRow1}}
+			        	{{> collapse}}
+			    	{{/each}}
+			    	{{#each keysRow2}}
+			        	{{> collapse}}
+			    	{{/each}}
+			    	{{#each keysRow3}}
+			        	{{> collapse}}
+			    	{{/each}}
+			    	{{#each keysRow4}}
+			        	{{> collapse}}
+			    	{{/each}}
+			    	{{#each keysRow5}}
+			        	{{> collapse}}
+			    	{{/each}}
+				</div>
+			</div>
+		</div>
+		<address id="signature">Created by <a href="http://jamespell.co.uk/">James Pell</a></address>
+	{{/if}}	
+</body>
+
+<template name="key">
+	{{#if fixedDisabled}}
+		<button id={{name}} class={{disabledClass}} type="button">{{name}}</button>
+	{{else}}
+		{{#if disabled}}
+			<button id={{name}} class={{disabledClass}} type="button" data-toggle="collapse" data-target={{dataTarget}} aria-expanded="false" aria-controls="collapseExample">{{name}}</button>
+		{{else}}
+			{{#if active}}
+				<button id={{name}} class={{activeClass}} type="button" data-toggle="collapse" data-target={{dataTarget}} aria-expanded="false" aria-controls="collapseExample">{{name}}</button>
+			{{else}}
+				<button id={{name}} class={{defaultClass}} type="button" data-toggle="collapse" data-target={{dataTarget}} aria-expanded="false" aria-controls="collapseExample">{{name}}</button>
+			{{/if}}	
+		{{/if}}
+	{{/if}}
+</template>
+
+<template name="collapse">
+	{{#if fixedDisabled}}
+	{{else}}
+		<div class="collapse" id={{collapse}} style="width: 50%; margin-left: 25%; margin-right: 25%;">
+			<div class="well">
+				<h2><span class="text-muted">Key: </span>{{name}}</h2>
+				{{#if disabled}}
+					<div class="btn-group" role="group" aria-label="Basic example">
+					  <button id={{enableId}} name={{name}} type="button" class="btn btn-secondary enable">Enable</button>
+					  <button id={{disableId}} name={{name}} type="button" class="btn btn-secondary disable active">Disable</button>
+					</div>
+				{{else}}
+					<div class="btn-group" role="group" aria-label="Basic example">
+					  <button name={{name}} type="button" class="btn btn-secondary enable active">Enable</button>
+					  <button name={{name}} type="button" class="btn btn-secondary disable">Disable</button>
+					</div>
+				{{/if}}
+					<div class="input-group" style="width: 20%; margin-left: 40%; margin-right: 40%; margin-top: 10px;">
+					    <label for="exampleSelect1">Instrument</label>
+					    <select class="form-control" id="exampleSelect1" >
+					        <option>Piano</option>
+					    </select>
+					</div>
+					<div class="input-group" style="width: 20%; margin-left: 40%; margin-right: 40%; margin-top: 10px;">
+					    <label for="noteInput">Note</label>
+					    <input id="noteInput" name={{name}} type="text" class="form-control" value={{note}}>
+					</div>
+			</div>
+		</div>
+	{{/if}}
+</template>
