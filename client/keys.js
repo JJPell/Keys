@@ -1,4 +1,6 @@
 // Keys.js - Whole App Code
+// Author: 		James Pell
+// Author URL: jamespell.co.uk
 
 // Constants
 const _DEFAULT_KEYS = [	
@@ -47,12 +49,6 @@ getMIDINumber = function(str){
                  return prop;
         }
     }
-}
-
-function pause( iMilliseconds )
-{
-    var sDialogScript = 'window.setTimeout( function () { window.close(); }, ' + iMilliseconds + ');';
-    window.showModalDialog('javascript:document.writeln ("<script>' + sDialogScript + '<' + '/script>")');
 }
 
 // Classes
@@ -111,6 +107,7 @@ class Key {
 Meteor.startup(function () {
 	Session.set("loadedAudio", 0);
 	Session.set("loadstart", 0);
+	Session.set("enableKeysCalledBefore", false);
 
 	audio = [];
 
@@ -159,33 +156,65 @@ function keyUp(keyString) {
 	Session.set(keyString, key);
 }
 
+function enableKeys() {
 
+	for (var i = _DEFAULT_KEYS.length - 1; i >= 0; i--) {
+
+		let dKeys = _DEFAULT_KEYS[i];
+		for (var j = 0; j < dKeys.length; j++) {
+
+			let currentKey = dKeys[j];
+			for (var k = _DISABLED_KEYS.length - 1; k >= 0; k--) {
+
+				if(currentKey !== _DISABLED_KEYS[k]) {	
+
+					let key = Session.get(currentKey);
+					key.disabled = false;
+					Session.set(currentKey, key);
+				}
+			};
+		};
+	};
+	Session.set("enableKeysCalledBefore", true);
+}
+
+function disableKeys() {
+
+	for (var i = _DEFAULT_KEYS.length - 1; i >= 0; i--) {
+
+		let dKeys = _DEFAULT_KEYS[i];
+		for (var j = 0; j < dKeys.length; j++) {
+
+			let currentKey = dKeys[j];
+			for (var k = _DISABLED_KEYS.length - 1; k >= 0; k--) {
+
+				if(currentKey !== _DISABLED_KEYS[k]) {	
+
+					let key = Session.get(currentKey);
+					key.disabled = true;
+					Session.set(currentKey, key);
+				}
+			};
+		};
+	};
+	enableKeysCalledBefore = true;
+}
 
 // Blaze Template Rendering
 
 Template.body.helpers({
 	notLoaded: function() {
 		if(Session.get("loadedAudio") < 704) {
-			console.log("(Keys) - Loading Audio");
+			console.log("(Keys) - Loading Audio "+ Session.get("loadedAudio") + " out of 704.");
 			return true;
-		} else if(Session.get("loadedAudio") === 704) {
-			console.log("(Keys) - Audio Loaded")
-			for (var i = _DEFAULT_KEYS.length - 1; i >= 0; i--) {
-				let dKeys = _DEFAULT_KEYS[i];
-				for (var j = 0; j < dKeys.length; j++) {
-					let currentKey = dKeys[j];
-					for (var k = _DISABLED_KEYS.length - 1; k >= 0; k--) {
-						if(currentKey !== _DISABLED_KEYS[k]) {	
-							let key = Session.get(currentKey);
-							key.disabled = false;
-							Session.set(currentKey, key);
-						}
-					};
-				};
-			};
+		} else if(Session.get("loadedAudio") >= 704) {
+			console.log("(Keys) - Audio Fully Loaded")
+			if(!Session.get("enableKeysCalledBefore")) {
+				enableKeys();
+			}
 			return false;
 		} else {
-			return true;
+			return true	;
 		}
 	},
 	loadedAudioPercent: function() {
@@ -238,14 +267,17 @@ Template.collapse.events({
 	"click .btn.enable": function(event) {
 		let key = Session.get(event.target.name);
 		key.disabled = false;
+		console.log(key.id);
+		console.log(event.target.name);
 		Session.set(event.target.name, key);
 	},
 	"click .btn.disable": function(event) {
 		let key = Session.get(event.target.name);
 		key.disabled = true;
+		console.log(key.id);
 		Session.set(event.target.name, key);
 	},
-	"keydown, blur #noteInput": function(event) {
+	"focus, blur #noteInput": function(event) {
 		let key = Session.get(event.target.name);
 		key.note = event.target.value;
 		Session.set(event.target.name, key);
@@ -265,4 +297,3 @@ Template.body.onRendered(function () {
 			audio[l] = new AudioFile("/piano/piano-"+l+".wav");
 		};
 });
-

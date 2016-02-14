@@ -8,16 +8,16 @@
 	{{#if notLoaded}}
 		<div class="vertical-center">
 			<div class="container">
-			<h4>Loading...</h4>
-				<br>
-			<div class="progress">
-			  <div class="progress-bar" role="progressbar" aria-valuenow={{loadedAudioPercent}}
-			  aria-valuemin="0" aria-valuemax="100" style="width:{{loadedAudioPercent}}%">
-			    <span class="sr-only">{{loadedAudioPercent}}% Complete</span>
-			  </div>
-			</div>
+				<h4>Loading...</h4>
+					<br>
+				<div class="progress">
+					<div class="progress-bar" role="progressbar" aria-valuenow={{loadedAudioPercent}} aria-valuemin="0" aria-valuemax="100" style="width:{{loadedAudioPercent}}%">
+						<span class="sr-only">{{loadedAudioPercent}}% Complete</span>
+					</div>
+				</div>
+				<i>Can take a minute or two to load depending on your internet speed.</i>
 			 </div>
-			</div>
+		</div>
 	{{else}}
 			<h1 id="title" class="font-effect-emboss">Keys</h1>
 			<div class="vertical-center">
