@@ -1,3 +1,8 @@
+// Keys.js - Whole App Code
+// Author: 		James Pell
+// Author URL: jamespell.co.uk
+
+// Constants
 const _DEFAULT_KEYS = [	
 					["¬", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "BACKSPACE"],
 					["TAB", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "ENTER"],
@@ -27,6 +32,8 @@ var _MIDI_NOTES = function() {
 	return returnValue;	
 };
 
+//Utillity Functions
+
 getMIDIString = function(num){
 
 	return _MIDI_NOTES()[num];
@@ -44,14 +51,29 @@ getMIDINumber = function(str){
     }
 }
 
-audio = [];
+// Classes
 
 class AudioFile {
 	constructor(src) {
 		this.audio = [];
 		this.src = src;
 		for (var i = 10; i >= 0; i--) {
-			this.audio[this.audio.length] = new buzz.sound(src);
+			this.audio[this.audio.length] = new buzz.sound(src, {
+			    formats: [ "mp3", "wav" ],
+			    preload: true,
+			    autoplay: false,
+			    loop: false
+			});
+			this.audio[this.audio.length-1].bind("canplaythrough", function(e) {
+				let loadedAudio = Session.get("loadedAudio");
+			    loadedAudio++;
+			    Session.set("loadedAudio", loadedAudio);
+			});
+			this.audio[this.audio.length-1].bind("loadstart", function(e) {
+			let loadstart = Session.get("loadstart");
+			    loadstart++;
+			    Session.set("loadstart", loadstart);
+			});
 		}
 		this.audioPlayback = 0;
 	}
@@ -61,7 +83,6 @@ class AudioFile {
 		};
 		this.audio[this.audioPlayback].play();
 		this.audioPlayback++;
-		console.log(this.src)
 	}
 };
 
@@ -81,10 +102,47 @@ class Key {
     this.disabledClass = "btn btn-default btn-lg disabled";
 
     this.active = false;
-    this.disabled = false;
+    this.disabled = true;
     this.fixedDisabled = false;
   };
 };
+
+// Main App Code
+audio = [];
+
+Meteor.startup(function () {
+	Session.set("loadedAudio", 0);
+	Session.set("loadstart", 0);
+	Session.set("enableKeysCalledBefore", false);
+
+	var noteCount = 29;
+
+	for (var i = _DEFAULT_KEYS.length - 1; i >= 0; i--) {
+		let dKeys = _DEFAULT_KEYS[i];
+		for (var j = 0; j < dKeys.length; j++) {	
+
+			Session.set(dKeys[j], new Key(dKeys[j]));
+			let currentKey = dKeys[j];
+			
+			for (var k = _DISABLED_KEYS.length - 1; k >= 0; k--) {
+				if(_DISABLED_KEYS[k] === currentKey) {			
+					let disabledKey = Session.get(currentKey);
+					disabledKey.disabled = true;
+					disabledKey.fixedDisabled = true;
+					Session.set(disabledKey.id, disabledKey);
+				}
+			};
+			if(!Session.get(currentKey).fixedDisabled) {
+				let currentNote = Session.get(currentKey);
+				currentNote.note = getMIDIString(noteCount);
+				Session.set(currentKey, currentNote);
+				noteCount++;
+				Mousetrap.bind(currentKey.toLowerCase(), function() { keyDown(currentKey);}, "keydown");
+				Mousetrap.bind(currentKey.toLowerCase(), function() { keyUp(currentKey);}, "keyup");
+			};
+		};
+	};
+});
 
 function keyDown (keyString) {
 	let key = Session.get(keyString);
@@ -102,37 +160,73 @@ function keyUp(keyString) {
 	Session.set(keyString, key);
 }
 
-let noteCount = 29;
+function enableKeys() {
 
-for (var i = _DEFAULT_KEYS.length - 1; i >= 0; i--) {
-	let dKeys = _DEFAULT_KEYS[i];
-	for (var j = 0; j < dKeys.length; j++) {	
+	for (var i = _DEFAULT_KEYS.length - 1; i >= 0; i--) {
 
-		Session.set(dKeys[j], new Key(dKeys[j]));
-		let currentKey = dKeys[j];
-		
-		for (var k = _DISABLED_KEYS.length - 1; k >= 0; k--) {
-			if(_DISABLED_KEYS[k] === currentKey) {			
-				let disabledKey = Session.get(currentKey);
-				disabledKey.disabled = true;
-				disabledKey.fixedDisabled = true;
-				disabledKey.class = disabledKey.disabledClass;
-				Session.set(disabledKey.id, disabledKey);
-			}
-		};
-		if(!Session.get(currentKey).disabled) {
-			let currentNote = Session.get(currentKey);
-			currentNote.note = getMIDIString(noteCount);
-			Session.set(currentKey, currentNote);
-			noteCount++;
-			Mousetrap.bind(currentKey.toLowerCase(), function() { keyDown(currentKey);}, "keydown");
-			Mousetrap.bind(currentKey.toLowerCase(), function() { keyUp(currentKey);}, "keyup");
+		let dKeys = _DEFAULT_KEYS[i];
+		for (var j = 0; j < dKeys.length; j++) {
+
+			let currentKey = dKeys[j];
+			for (var k = _DISABLED_KEYS.length - 1; k >= 0; k--) {
+
+				if(currentKey !== _DISABLED_KEYS[k]) {	
+
+					let key = Session.get(currentKey);
+					key.disabled = false;
+					Session.set(currentKey, key);
+				}
+			};
 		};
 	};
-};
+	Session.set("enableKeysCalledBefore", true);
+}
 
+function disableKeys() {
+
+	for (var i = _DEFAULT_KEYS.length - 1; i >= 0; i--) {
+
+		let dKeys = _DEFAULT_KEYS[i];
+		for (var j = 0; j < dKeys.length; j++) {
+
+			let currentKey = dKeys[j];
+			for (var k = _DISABLED_KEYS.length - 1; k >= 0; k--) {
+
+				if(currentKey !== _DISABLED_KEYS[k]) {	
+
+					let key = Session.get(currentKey);
+					key.disabled = true;
+					Session.set(currentKey, key);
+				}
+			};
+		};
+	};
+	enableKeysCalledBefore = true;
+}
+
+// Blaze Template Rendering
 
 Template.body.helpers({
+	notLoaded: function() {
+		if(Session.get("loadedAudio") < 704) {
+			console.log("(Keys) - Loading Audio "+ Session.get("loadedAudio") + " out of 704.");
+			return true;
+		} else if(Session.get("loadedAudio") === 704) {
+			console.log("(Keys) - Audio Fully Loaded")
+			if(!Session.get("enableKeysCalledBefore")) {
+				enableKeys();
+			}
+			return false;
+		} else if(Session.get("loadedAudio") > 704) {
+			return false;
+		} else {
+			return true	;
+		}
+	},
+	loadedAudioPercent: function() {
+		var load = ((Session.get("loadedAudio") + Session.get("loadstart")) / (704*2)) * 100;
+		return load;
+	},
 	keysRow1: function() {
 		let returnValues = [];
 		let dKeys = _DEFAULT_KEYS[0];
@@ -179,14 +273,17 @@ Template.collapse.events({
 	"click .btn.enable": function(event) {
 		let key = Session.get(event.target.name);
 		key.disabled = false;
+		console.log(key.id);
+		console.log(event.target.name);
 		Session.set(event.target.name, key);
 	},
 	"click .btn.disable": function(event) {
 		let key = Session.get(event.target.name);
 		key.disabled = true;
+		console.log(key.id);
 		Session.set(event.target.name, key);
 	},
-	"keydown, blur #noteInput": function(event) {
+	"focus, blur #noteInput": function(event) {
 		let key = Session.get(event.target.name);
 		key.note = event.target.value;
 		Session.set(event.target.name, key);
@@ -196,15 +293,12 @@ Template.collapse.events({
 Template.body.onRendered(function () {
 
 		if (!buzz.isSupported()) {
-		    alert("Your browser is does not support HTML5 Audio.");
+		    alert("Your browser is does not support HTML5 Audio and so this App will not function properly.");
 		}
 		if (!buzz.isWAVSupported()) {
-		    alert("Your browser doesn't support WAV Format.");
+		    alert("Your browser doesn't support WAV Format and so this App will not function properly.");
 		}
-		for (var l = 0; l < 89; l++) {
-			audio[l] = new AudioFile("/piano/piano-"+l+".wav"); // VERY STRANGE BUG, BOGGLES THE MIND. Subtract 21 to fix.
-
+		for (var l = 21; l <= 84; l++) {
+			audio[l] = new AudioFile("/piano/piano-"+l);
 		};
-
 });
-
